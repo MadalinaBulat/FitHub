@@ -792,9 +792,15 @@ function SlideTitle({ onNext }) {
       {/* Left — hero */}
       <div style={{ flex:"0 0 58%", position:"relative", overflow:"hidden" }}>
         {/* Gym photo background */}
-        <div style={{ position:"absolute", inset:0,
-          backgroundImage:`url('${import.meta.env.BASE_URL}FitHub/gym-hero.jpg')`, backgroundSize:"cover", backgroundPosition:"center" }}/>
-        {/* Dark overlay for text readability */}
+        <div
+  style={{
+    position: "absolute",
+    inset: 0,
+    backgroundImage: `url('${import.meta.env.BASE_URL}gym-hero.jpg')`,
+    backgroundSize: "cover",
+    backgroundPosition: "center"
+  }}
+/>{/* Dark overlay for text readability */}
         <div style={{ position:"absolute", inset:0,
           background:"linear-gradient(135deg, rgba(13,21,20,0.38) 0%, rgba(10,26,24,0.25) 50%, rgba(13,21,20,0.40) 100%)" }}/>
         {/* Large hero text */}
