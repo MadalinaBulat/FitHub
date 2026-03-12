@@ -342,12 +342,19 @@ Thank you for listening, and I’d be happy to take any questions.`
 // JM Family logo — uses tree.png
 function Logo({ size = 32 }) {
   return (
-    <img src="/tree.png" alt="JM FitHub"
-      style={{ width: size, height: size, borderRadius: size * 0.18,
-        objectFit:"cover", flexShrink: 0 }} />
+    <img
+      src={`${import.meta.env.BASE_URL}tree.png`}
+      alt="JM FitHub"
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size * 0.18,
+        objectFit: "cover",
+        flexShrink: 0
+      }}
+    />
   );
 }
-
 // Sidebar shared by all member demo screens
 function Sidebar({ active, onNav }) {
   const links = ["Schedule","My Bookings","Progress","Locations","Profile"];
@@ -738,10 +745,25 @@ function SlideWelcome({ onNext }) {
 // ─── SLIDE: SCREENSHOT ────────────────────────────────────────────────────────
 function SlideScreenshot({ onNext }) {
   return (
-    <div style={{ width:"100%",height:"100%",background:A.bg,
-      display:"flex",alignItems:"center",justifyContent:"center" }}>
-      <img src="/screenshot.jpeg" alt="SharePoint Health & Wellness"
-        style={{ maxWidth:"100%",maxHeight:"100%",objectFit:"contain" }}/>
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        background: A.bg,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center"
+      }}
+    >
+      <img
+        src={`${import.meta.env.BASE_URL}screenshot.jpeg`}
+        alt="SharePoint Health & Wellness"
+        style={{
+          maxWidth: "100%",
+          maxHeight: "100%",
+          objectFit: "contain"
+        }}
+      />
     </div>
   );
 }
@@ -1491,10 +1513,25 @@ function DemoProfile({ onNext }) {
 // ─── DEMO: EMAIL ──────────────────────────────────────────────────────────────
 function DemoEmail({ onNext }) {
   return (
-    <div style={{ width:"100%",height:"100%",background:A.bg,
-      display:"flex",alignItems:"center",justifyContent:"center" }}>
-      <img src="/email-screenshot.jpeg" alt="Booking confirmation email"
-        style={{ maxWidth:"100%",maxHeight:"100%",objectFit:"contain" }}/>
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        background: A.bg,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center"
+      }}
+    >
+      <img
+        src={`${import.meta.env.BASE_URL}email-screenshot.jpeg`}
+        alt="Booking confirmation email"
+        style={{
+          maxWidth: "100%",
+          maxHeight: "100%",
+          objectFit: "contain"
+        }}
+      />
     </div>
   );
 }
@@ -2113,12 +2150,28 @@ function ErdLegend() {
 
 function SlideERD({ onNext }) {
   return (
-    <div style={{ width:"100%", height:"100%", background:"#0c1312", display:"flex", alignItems:"center", justifyContent:"center" }}>
-      <img src="/erd.png" alt="Entity Relationship Diagram" style={{ maxWidth:"100%", maxHeight:"100%", objectFit:"contain" }} />
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        background: "#0c1312",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center"
+      }}
+    >
+      <img
+        src={`${import.meta.env.BASE_URL}erd.png`}
+        alt="Entity Relationship Diagram"
+        style={{
+          maxWidth: "100%",
+          maxHeight: "100%",
+          objectFit: "contain"
+        }}
+      />
     </div>
   );
 }
-
 // ─── SLIDE: AZURE INFRASTRUCTURE ─────────────────────────────────────────────
 function SlideAzure({ onNext }) {
   const items = [
