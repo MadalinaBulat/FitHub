@@ -452,6 +452,17 @@ function RedBtn({ children, onClick, small }) {
 function ClassCard({ cls, onBook, onCancel }) {
   const col = TYPE_COL[cls.type] || A.teal;
   const pct = ((cls.total - cls.left) / cls.total) * 100;
+  // Audience mode: clicking BOOK jumps to My Bookings
+  const isAudience = new URLSearchParams(window.location.search).get("mode") === "audience";
+  const handleBook = () => {
+    if (isAudience) {
+      // Find My Bookings slide index
+      const idx = SLIDES.findIndex(s => s.id === "bookings");
+      if (idx >= 0) window.parent.postMessage({ type: "gotoSlide", idx }, "*");
+    } else {
+      onBook();
+    }
+  };
   return (
     <div style={{ background:A.card, border:`1px solid ${A.cardBorder}`, borderRadius:10,
       borderLeft:`3px solid ${col}`, padding:"14px 16px", marginBottom:10 }}>
@@ -489,7 +500,7 @@ function ClassCard({ cls, onBook, onCancel }) {
           <RedBtn small onClick={onCancel}>Cancel</RedBtn>
         </div>
       ) : (
-        <TealBtn onClick={onBook} style={{ width:"100%", padding:"9px 0", fontSize:13,
+        <TealBtn onClick={handleBook} style={{ width:"100%", padding:"9px 0", fontSize:13,
           letterSpacing:"0.08em" }}>BOOK</TealBtn>
       )}
     </div>
@@ -1016,7 +1027,7 @@ function DemoLogin({ onNext }) {
 }
 
 // ─── DEMO: SCHEDULE ───────────────────────────────────────────────────────────
-function DemoSchedule({ onNext }) {
+function DemoSchedule({ onBook, onNext }) {
   const [filter, setFilter] = useSyncedState("schedule-filter", "ALL");
   const filters = ["ALL","HIIT/LIIT","MEDITATION","TOTAL BODY","PILATES","ZUMBA","YOGA","FULL BODY"];
   const days = Object.keys(SCHEDULE);
@@ -1072,7 +1083,7 @@ function DemoSchedule({ onNext }) {
                   </div>
                 </div>
                 {classes.map(cls => (
-                  <ClassCard key={cls.id} cls={cls} onBook={onNext} onCancel={() => {}} />
+                  <ClassCard key={cls.id} cls={cls} onBook={onBook} onCancel={() => {}} />
                 ))}
               </div>
             );
@@ -1335,7 +1346,7 @@ function DemoProgress({ onNext }) {
 // ─── DEMO: LOCATIONS ──────────────────────────────────────────────────────────
 function DemoLocations({ onNext }) {
   const locs = [
-    { name:"Deerfield Beach", tags:["HQ","CLASSES"], hours:"Mon – Fri: 5:00 AM – 5:00 PM", peak:null },
+    { name:"Deerfield Beach", tags:["HQ","CLASSES"], hours:"Open 24/7", peak:null },
     { name:"JAX – Baymeadows", tags:["JAX"], hours:"Open 24 / 7", peak:"Associates only: M-F 10 AM–1 PM · 4:30–6 PM" },
     { name:"JAX – Talleyrand/Westlake", tags:["JAX"], hours:"Open 24 / 7", peak:"Associates only: M-F 10 AM–1 PM · 3–6 PM" },
     { name:"Margate", tags:["MRG"], hours:"Mon-Sat 6 AM–11 PM · Sun 8 AM–7 PM", peak:null },
@@ -2475,6 +2486,16 @@ function useTimer(running) {
 
 // ─── AUDIENCE VIEW (opened in separate window, full-screen slide only) ────────
 function AudienceApp() {
+    // Listen for parent messages (e.g., BOOK button triggers slide jump)
+    useEffect(() => {
+      const handler = (e) => {
+        if (e.data && e.data.type === "gotoSlide" && typeof e.data.idx === "number") {
+          setIdx(e.data.idx);
+        }
+      };
+      window.addEventListener("message", handler);
+      return () => window.removeEventListener("message", handler);
+    }, []);
   const [idx, setIdx] = useState(0);
   const slide = SLIDES[idx];
 
@@ -2648,39 +2669,21 @@ function PresenterPanel({ idx, slide, goNext, goPrev, goTo, elapsed, onEndPresen
 }
 
 export default function App() {
+    function goToBookings() {
+      const bookingsIdx = SLIDES.findIndex(s => s.id === "bookings");
+      if (bookingsIdx >= 0) setIdx(bookingsIdx);
+    }
   // Detect if this is the audience window
   const isAudience = new URLSearchParams(window.location.search).get("mode") === "audience";
   if (isAudience) return <AudienceApp />;
 
   const [idx, setIdx] = useState(0);
-  const [presenting, setPresenting] = useState(false);
+
   const slide = SLIDES[idx];
   const goNext = useCallback(() => setIdx(i => Math.min(i+1, SLIDES.length-1)), []);
   const goPrev = useCallback(() => setIdx(i => Math.max(i-1, 0)), []);
   const goTo   = useCallback(i => setIdx(i), []);
   const restart= useCallback(() => setIdx(0), []);
-
-  const { openAudienceWindow, closeAudienceWindow } = usePresenterSync(idx, setIdx);
-  const elapsed = useTimer(presenting);
-
-  useEffect(() => {
-    const h = e => {
-      if (e.key==="ArrowRight"||e.key==="ArrowDown") goNext();
-      if (e.key==="ArrowLeft"||e.key==="ArrowUp") goPrev();
-      if (e.key==="Escape" && presenting) endPresentation();
-    };
-    window.addEventListener("keydown",h);
-    return () => window.removeEventListener("keydown",h);
-  });
-
-  function startPresentation() {
-    setPresenting(true);
-    openAudienceWindow();
-  }
-  function endPresentation() {
-    setPresenting(false);
-    closeAudienceWindow();
-  }
 
   function renderSlideAt(i) {
     const s = SLIDES[i];
@@ -2690,7 +2693,7 @@ export default function App() {
       case "welcome":    return <SlideWelcome onNext={next}/>;
       case "screenshot": return <SlideScreenshot onNext={next}/>;
       case "title":      return <SlideTitle onNext={next}/>;
-      case "schedule":   return <DemoSchedule onNext={next}/>;
+      case "schedule":   return <DemoSchedule onBook={goToBookings} onNext={next}/>;
       case "bookings":   return <DemoBookings onNext={next}/>;
       case "progress":   return <DemoProgress onNext={next}/>;
       case "locations":  return <DemoLocations onNext={next}/>;
@@ -2706,13 +2709,6 @@ export default function App() {
       case "thankyou":   return <SlideThankYou onNext={i===idx?restart:noop}/>;
       default:           return null;
     }
-  }
-
-  // ─── PRESENTER MODE ───────────────────────────────────────────────
-  if (presenting) {
-    return <PresenterPanel idx={idx} slide={slide} goNext={goNext} goPrev={goPrev}
-      goTo={goTo} elapsed={elapsed} onEndPresentation={endPresentation}
-      renderSlide={renderSlideAt} />;
   }
 
   // ─── NORMAL MODE ──────────────────────────────────────────────────
@@ -2747,17 +2743,6 @@ export default function App() {
           style={{ background:"transparent", border:`1px solid ${A.border}`, borderRadius:5,
             width:30, height:30, color:idx===SLIDES.length-1?A.dim:A.sub,
             cursor:idx===SLIDES.length-1?"default":"pointer", fontSize:13 }}>→</button>
-        {/* Present button */}
-        <button onClick={startPresentation}
-          style={{ marginLeft:4, background:A.teal, border:"none", borderRadius:5,
-            padding:"5px 14px", fontFamily:"Barlow", fontSize:12, fontWeight:700,
-            color:A.bg, cursor:"pointer", display:"flex", alignItems:"center", gap:5 }}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/>
-            <line x1="12" y1="17" x2="12" y2="21"/>
-          </svg>
-          Present
-        </button>
       </div>
     </div>
   );
